@@ -1,0 +1,42 @@
+{{extend 'layout.html'}}
+<h1>PS</h1>
+
+<style>
+    th, td {
+        padding: 10px;}
+    th {
+        border-bottom: 2px solid #111111;
+        border-top: 1px solid #999;}
+    tr.even {
+        background-color: #efefef;}
+    tr:hover {
+        background-color: #c3e6e5;}
+</style>
+
+{{for host, ps in pss:}}
+    <h2>{{=host}}</h2>
+
+    <table>
+        <!--Table headling-->
+        <tr>
+            {{ths = ['CONTAINER ID', 'IMAGE', 'COMMAND', 'CREATED', 'STATUS', 'NAMES']}}
+            {{for ath in ths:}}
+                <th scope="col"> {{=ath}} </th>
+            {{pass}}
+        </tr>
+        {{for idx, container in enumerate(ps):}}
+            {{if idx & 1:}}
+                <tr class="even">
+            {{else:}}
+                <tr>
+            {{pass}}
+                <td> {{=BEAUTIFY(container['Id'])}} </td>
+                <td> {{=BEAUTIFY(container['Image'])}} </td>
+                <td> {{=BEAUTIFY(container['Command'])}} </td>
+                <td> {{=BEAUTIFY(container['Created'])}} </td>
+                <td> {{=BEAUTIFY(container['Status'])}} </td>
+                <td> {{=BEAUTIFY(container['Names'])}} </td>
+            </tr>
+        {{pass}}
+    </table>
+{{pass}}
