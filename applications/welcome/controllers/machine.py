@@ -1,7 +1,7 @@
 import docker
 import datetime
 
-HOST_PATH = '/Users/crosserclaws/.docker'
+HOST_PATH = '/root/.docker'
 HOST_FILENAME = '/host.txt'
 items = []
 with open(HOST_PATH + HOST_FILENAME, 'r') as f:
