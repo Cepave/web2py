@@ -1,7 +1,9 @@
 import docker
 import datetime
+from os.path import expanduser
 
-HOST_PATH = '/root/.docker'
+_HOME = expanduser("~")
+HOST_PATH = _HOME + '/.docker'
 HOST_FILENAME = '/host.txt'
 items = []
 with open(HOST_PATH + HOST_FILENAME, 'r') as f:
