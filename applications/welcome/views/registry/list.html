@@ -1,0 +1,25 @@
+{{extend 'layout.html'}}
+
+<h2>{{=host}}</h2>
+
+<style>
+    th, td {
+        padding: 10px;}
+    th {
+        border-bottom: 2px solid #111111;
+        border-top: 1px solid #999;}
+    tr.even {
+        background-color: #efefef;}
+    tr:hover {
+        background-color: #c3e6e5;}
+</style>
+
+<h2>form.vars</h2>
+<pre>{{=vars}}</pre>
+
+{{=form}}
+
+{{if dels:}}
+    <h3> Deleted Images </h3>
+    {{=dels}}
+{{pass}}
