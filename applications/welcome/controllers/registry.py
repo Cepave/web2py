@@ -1,6 +1,5 @@
 #!/usr/bin/env python
 
-import sys
 import yaml
 import requests
 from os.path import expanduser
@@ -15,25 +14,24 @@ def readConfig(filePath=_configPath):
 
 config = readConfig()['registry']
 protocol = 'https://' if config['ssl']['isHttps'] else 'http://'
-host = protocol + config['domain']
-hostUrl = host + '/v2/'
+hostUrl = protocol + config['domain']
 
 # Functions
+#@auth.requires_login()
 def list():
-    msg = ''
+    msgList = []
     form = _getForm(_listRegistry(hostUrl))
 
     # Handle form
     if form.process().accepted:
-        msgList = []
         formData = dict(form.vars)
         for name, flag in formData.iteritems():
             if flag:
                 repo, tag = name.split(':')
                 msgList.append( delManifest(hostUrl, repo, tag) )
-        msg = '\n'.join(msgList)
+
         # Update the info
-        if msg:
+        if msgList:
             form = _getForm(_listRegistry(hostUrl))
         response.flash = 'form accepted'
     elif form.errors:
@@ -41,7 +39,7 @@ def list():
     else:
         response.flash = 'please fill the form'
 
-    return dict(host=host, form=form, vars=form.vars, dels=msg)
+    return dict(host=hostUrl, form=form, vars=form.vars, msgs=msgList)
 
 def _listRegistry(hostUrl):
     repDict = {}
@@ -68,7 +66,7 @@ def _getForm(regDict):
 
 def _getRepos(hostUrl):
     method = requests.get
-    url = hostUrl + '_catalog'
+    url = hostUrl + '/v2/_catalog'
     kw = { 'url': url }
 
     r = _handleRequest(200, method, **kw)
@@ -78,7 +76,7 @@ def _getRepos(hostUrl):
 
 def _getTags(hostUrl, repoStr):
     method = requests.get
-    url = '{}{}/tags/list'.format(hostUrl, repoStr)
+    url = '{}/v2/{}/tags/list'.format(hostUrl, repoStr)
     kw = { 'url': url }
 
     r = _handleRequest(200, method, **kw)
@@ -92,7 +90,7 @@ def delManifest(hostUrl, repoStr, tagStr):
         return None
 
     method = requests.delete
-    url = '{}{}/manifests/{}'.format(hostUrl, repoStr, digest)
+    url = '{}/v2/{}/manifests/{}'.format(hostUrl, repoStr, digest)
     kw = { 'url': url }
 
     r = _handleRequest(202, method, **kw)
@@ -102,7 +100,7 @@ def delManifest(hostUrl, repoStr, tagStr):
 
 def getDigest(hostUrl, repoStr, tagStr):
     method = requests.head
-    url = '{}{}/manifests/{}'.format(hostUrl, repoStr, tagStr)
+    url = '{}/v2/{}/manifests/{}'.format(hostUrl, repoStr, tagStr)
     v2Headers = { 'Accept': 'application/vnd.docker.distribution.manifest.v2+json' }
     kw = { 'url': url, 'headers': v2Headers }
 

@@ -19,7 +19,9 @@
 
 {{=form}}
 
-{{if dels:}}
+{{if msgs:}}
     <h3> Deleted Images </h3>
-    {{=dels}}
+    {{for msg in msgs:}}
+        {{=msg}} <br>
+    {{pass}}
 {{pass}}
