@@ -1,0 +1,10 @@
+{{extend 'layout.html'}}
+
+<h2>{{=host}}</h2>
+
+<h3> GC Messages </h3>
+{{for msg in msgs:}}
+    {{=msg}} <br>
+{{pass}}
+
+<button onclick="{{=URL(list)}}">Back to list registry</button>

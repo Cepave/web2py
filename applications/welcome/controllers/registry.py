@@ -1,14 +1,16 @@
 #!/usr/bin/env python
 
+import time
 import yaml
+import docker
 import requests
 from os.path import expanduser
 
 # Init
-_HOME = expanduser("~")
-_configPath = _HOME + '/.docker/dockmon.yml'
+_DOCKER_DEFAULT_PATH = expanduser("~") + '/.docker'
+_filePath = _DOCKER_DEFAULT_PATH + '/dockmon.yml'
 
-def readConfig(filePath=_configPath):
+def readConfig(filePath=_filePath):
   with open(filePath, 'r') as f:
     return yaml.load(f)
 
@@ -41,6 +43,43 @@ def list():
 
     return dict(host=hostUrl, form=form, vars=form.vars, msgs=msgList)
 
+def gc():
+    _SLEEP_TIME=0.5
+    _CONTAINER_NAME = 'reg'
+    _CONFIG_PATH='/etc/docker/registry'
+
+    f = lambda path: docker.tls.TLSConfig(
+        client_cert=( path + '/cert.pem', path + '/key.pem'),
+        verify= path + '/ca.pem'
+    )
+    cp = lambda src, dst: 'cp {0}/{1} {0}/{2}'.format(_CONFIG_PATH, src, dst)
+    client = docker.Client(base_url=hostUrl + ':2376', tls=f(path))
+    msgLigst = []
+
+    # Set read-only flag before GC
+    idDict = client.exec_create(_CONTAINER_NAME, cp('rcfg.yml', 'config.yml'))
+    resp = client.exec_start(idDict)
+    msgLigst.append(resp)
+    print '[EXEC][R]', resp
+    client.restart(_CONTAINER_NAME)
+    time.sleep(_SLEEP_TIME)
+
+    # GC
+    idDict = client.exec_create(_CONTAINER_NAME, '/bin/registry garbage-collect {}/config.yml'.format(_CONFIG_PATH))
+    resp = client.exec_start(idDict)
+    msgLigst.append(resp)
+    print '[EXEC][GC]', resp
+    time.sleep(_SLEEP_TIME)
+
+    # Restore read-only flag after GC
+    idDict = client.exec_create(_CONTAINER_NAME, cp('wcfg.yml', 'config.yml'))
+    resp = client.exec_start(idDict)
+    msgLigst.append(resp)
+    print '[EXEC][W]', resp
+    client.restart(_CONTAINER_NAME)
+
+    return dict(host=hostUrl, msgs=msgList)
+
 def _listRegistry(hostUrl):
     repDict = {}
     repoList = _getRepos(hostUrl)
@@ -62,6 +101,7 @@ def _getForm(regDict):
     rowList.append(TR('', INPUT(_type='submit', _value='SUBMIT')))
     form = FORM(TABLE(*rowList))
     form.add_button('Refresh', URL('list'))
+    form.add_button('GC', URL('gc'))
     return form
 
 def _getRepos(hostUrl):
