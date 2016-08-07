@@ -19,7 +19,8 @@ f = lambda path: docker.tls.TLSConfig(
 
 g = lambda host: 'tcp://{}:2376'.format(host)
 
-@auth.requires_membership('docker')
+#@auth.requires_membership('docker')
+@auth.requires_login()
 def ps():
     pss = []
     for host, path in items:
