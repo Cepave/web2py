@@ -53,7 +53,7 @@ def gc():
         verify= path + '/ca.pem'
     )
     cp = lambda src, dst: 'cp {0}/{1} {0}/{2}'.format(_CONFIG_PATH, src, dst)
-    client = docker.Client(base_url=hostUrl + ':2376', tls=f(path))
+    client = docker.Client(base_url=hostUrl + ':2376', tls=f(_DOCKER_DEFAULT_PATH))
     msgLigst = []
 
     # Set read-only flag before GC
