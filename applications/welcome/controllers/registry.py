@@ -57,12 +57,12 @@ def gc():
     up = urlparse(hostUrl)
     url = '{}://{}:2376'.format(up.scheme, up.hostname)
     client = docker.Client(base_url=url, tls=f(_DOCKER_DEFAULT_PATH))
-    msgLigst = []
+    msgList = []
 
     # Set read-only flag before GC
     idDict = client.exec_create(_CONTAINER_NAME, cp('rcfg.yml', 'config.yml'))
     resp = client.exec_start(idDict)
-    msgLigst.append(resp)
+    msgList.append(resp)
     print '[EXEC][R]', resp
     client.restart(_CONTAINER_NAME)
     time.sleep(_SLEEP_TIME)
@@ -70,14 +70,14 @@ def gc():
     # GC
     idDict = client.exec_create(_CONTAINER_NAME, '/bin/registry garbage-collect {}/config.yml'.format(_CONFIG_PATH))
     resp = client.exec_start(idDict)
-    msgLigst.append(resp)
+    msgList.append(resp)
     print '[EXEC][GC]', resp
     time.sleep(_SLEEP_TIME)
 
     # Restore read-only flag after GC
     idDict = client.exec_create(_CONTAINER_NAME, cp('wcfg.yml', 'config.yml'))
     resp = client.exec_start(idDict)
-    msgLigst.append(resp)
+    msgList.append(resp)
     print '[EXEC][W]', resp
     client.restart(_CONTAINER_NAME)
 
