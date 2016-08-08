@@ -1,7 +1,5 @@
 {{extend 'layout.html'}}
 
-<h2>{{=host}}</h2>
-
 <style>
     th, td {
         padding: 10px;}
@@ -14,14 +12,29 @@
         background-color: #c3e6e5;}
 </style>
 
-<h2>form.vars</h2>
-<pre>{{=vars}}</pre>
+<h2>{{=host1}}</h2>
 
-{{=form}}
+<h3>form1.vars</h3>
+<pre>{{=form1.vars}}</pre>
+{{=form1}}
 
-{{if msgs:}}
+{{if msg1:}}
     <h3> Deleted Images </h3>
-    {{for msg in msgs:}}
+    {{for msg in msg1:}}
+        {{=msg}} <br>
+    {{pass}}
+{{pass}}
+
+
+<h2>{{=host2}}</h2>
+
+<h3>form2.vars</h3>
+<pre>{{=form2.vars}}</pre>
+{{=form2}}
+
+{{if msg2:}}
+    <h3> Deleted Images </h3>
+    {{for msg in msg2:}}
         {{=msg}} <br>
     {{pass}}
 {{pass}}

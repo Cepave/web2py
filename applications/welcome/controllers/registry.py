@@ -17,16 +17,30 @@ def readConfig(filePath=_filePath):
 
 config = readConfig()['registry']
 protocol = 'https://' if config['ssl']['isHttps'] else 'http://'
-hostUrl = protocol + config['domain']
 
 # Functions
 #@auth.requires_login()
 def list():
-    msgList = []
-    form = _getForm(_listRegistry(hostUrl))
+    domainList = config['domain']
 
-    # Handle form
-    if form.process().accepted:
+    msgList1 = []
+    msgList2 = []
+    hostUrl1 = protocol + domainList[0]
+    hostUrl2 = protocol + domainList[1]
+    form1 = _getForm(hostUrl1, _listRegistry(hostUrl1))
+    form2 = _getForm(hostUrl2, _listRegistry(hostUrl2))
+
+    # Update
+    form1 = _formHandler('form_one', form1, hostUrl1, msgList1)
+    form2 = _formHandler('form_two', form2, hostUrl2, msgList2)
+    print 'form1=', form1
+    print 'form2=', form2
+
+    return dict(host1=hostUrl1, form1=form1, msg1=msgList1, host2=hostUrl2, form2=form2, msg2=msgList2)
+
+def _formHandler(formName, form, hostUrl, msgList):
+    if form.process(formname=formName).accepted:
+        var = form.vars
         formData = dict(form.vars)
         for name, flag in formData.iteritems():
             if flag:
@@ -35,14 +49,10 @@ def list():
 
         # Update the info
         if msgList:
-            form = _getForm(_listRegistry(hostUrl))
+            form = _getForm(hostUrl, _listRegistry(hostUrl))
+            form.vars = var
         response.flash = 'form accepted'
-    elif form.errors:
-        response.flash = 'form is invalid'
-    else:
-        response.flash = 'please fill the form'
-
-    return dict(host=hostUrl, form=form, vars=form.vars, msgs=msgList)
+    return form
 
 def gc():
     _SLEEP_TIME=0.5
@@ -54,6 +64,7 @@ def gc():
         verify= path + '/ca.pem'
     )
     cp = lambda src, dst: 'cp {0}/{1} {0}/{2}'.format(_CONFIG_PATH, src, dst)
+    hostUrl = request.vars['dn']
     up = urlparse(hostUrl)
     url = '{}://{}:2376'.format(up.scheme, up.hostname)
     client = docker.Client(base_url=url, tls=f(_DOCKER_DEFAULT_PATH))
@@ -92,7 +103,7 @@ def _listRegistry(hostUrl):
             repDict[repo] = tagList
     return repDict
 
-def _getForm(regDict):
+def _getForm(hostUrl, regDict):
     rowList = []
     rowList.append( TR(TH('IMAGE'), TH('DELETE')) )
     for repo, tagList in regDict.iteritems():
@@ -104,7 +115,7 @@ def _getForm(regDict):
     rowList.append(TR('', INPUT(_type='submit', _value='SUBMIT')))
     form = FORM(TABLE(*rowList))
     form.add_button('Refresh', URL('list'))
-    form.add_button('GC', URL('gc'))
+    form.add_button('GC', URL('gc', vars=dict(dn=hostUrl)))
     return form
 
 def _getRepos(hostUrl):
@@ -170,7 +181,8 @@ def _getAuth(domainName):
     return config['login']['auths'].get(domainName, {}).get('auth')
 
 def _setAuth(kwDict):
-    auth = _getAuth(config['domain'])
+    domainName = urlparse(kwDict['url']).netloc
+    auth = _getAuth(domainName)
     if auth is None:
         print '[Error] No Auth data.'
 
