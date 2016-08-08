@@ -18,8 +18,7 @@ def readConfig(filePath=_filePath):
 config = readConfig()['registry']
 protocol = 'https://' if config['ssl']['isHttps'] else 'http://'
 
-# Functions
-#@auth.requires_login()
+@auth.requires_login()
 def list():
     domainList = config['domain']
 
@@ -54,6 +53,7 @@ def _formHandler(formName, form, hostUrl, msgList):
         response.flash = 'form accepted'
     return form
 
+@auth.requires_login()
 def gc():
     _SLEEP_TIME=0.5
     _CONTAINER_NAME = 'reg'
