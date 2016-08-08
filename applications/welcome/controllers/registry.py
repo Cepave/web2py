@@ -62,23 +62,23 @@ def gc():
     # Set read-only flag before GC
     idDict = client.exec_create(_CONTAINER_NAME, cp('rcfg.yml', 'config.yml'))
     resp = client.exec_start(idDict)
-    msgList.append(resp)
-    print '[EXEC][R]', resp
+    msg = '[EXEC][R] {}'.format(resp)
+    msgList.append(msg)
     client.restart(_CONTAINER_NAME)
     time.sleep(_SLEEP_TIME)
 
     # GC
     idDict = client.exec_create(_CONTAINER_NAME, '/bin/registry garbage-collect {}/config.yml'.format(_CONFIG_PATH))
     resp = client.exec_start(idDict)
-    msgList.append(resp)
-    print '[EXEC][GC]', resp
+    msg = '[EXEC][GC] {}'.format(resp)
+    msgList.append(msg)
     time.sleep(_SLEEP_TIME)
 
     # Restore read-only flag after GC
     idDict = client.exec_create(_CONTAINER_NAME, cp('wcfg.yml', 'config.yml'))
     resp = client.exec_start(idDict)
-    msgList.append(resp)
-    print '[EXEC][W]', resp
+    msg = '[EXEC][W] {}'.format(resp)
+    msgList.append(msg)
     client.restart(_CONTAINER_NAME)
 
     return dict(host=hostUrl, msgs=msgList)
