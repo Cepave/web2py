@@ -5,6 +5,7 @@ import yaml
 import docker
 import requests
 from os.path import expanduser
+from urlparse import urlparse
 
 # Init
 _DOCKER_DEFAULT_PATH = expanduser("~") + '/.docker'
@@ -53,7 +54,9 @@ def gc():
         verify= path + '/ca.pem'
     )
     cp = lambda src, dst: 'cp {0}/{1} {0}/{2}'.format(_CONFIG_PATH, src, dst)
-    client = docker.Client(base_url=hostUrl + ':2376', tls=f(_DOCKER_DEFAULT_PATH))
+    up = urlparse(hostUrl)
+    url = '{}://{}:2376'.format(up.scheme, up.hostname)
+    client = docker.Client(base_url=url, tls=f(_DOCKER_DEFAULT_PATH))
     msgLigst = []
 
     # Set read-only flag before GC
