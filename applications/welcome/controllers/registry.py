@@ -27,6 +27,7 @@ def list():
 
     # Handle form
     if form.process().accepted:
+	var = form.vars
         formData = dict(form.vars)
         for name, flag in formData.iteritems():
             if flag:
@@ -36,6 +37,7 @@ def list():
         # Update the info
         if msgList:
             form = _getForm(_listRegistry(hostUrl))
+	    form.vars = var
         response.flash = 'form accepted'
     elif form.errors:
         response.flash = 'form is invalid'
