@@ -19,12 +19,11 @@ f = lambda path: docker.tls.TLSConfig(
 
 g = lambda host: 'tcp://{}:2376'.format(host)
 
-#@auth.requires_membership('docker')
 @auth.requires_login()
 def ps():
     pss = []
     for host, path in items:
-        client = docker.Client(base_url=g(host), tls=f(path))
+        client = docker.Client(base_url=g(host), tls=f(path), version='auto')
         ps = client.containers(all=True, trunc=True)
         # Change the time format of Created
         for container in ps:
