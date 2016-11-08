@@ -32,8 +32,6 @@ def list():
     # Update
     form1 = _formHandler('form_one', form1, hostUrl1, msgList1)
     form2 = _formHandler('form_two', form2, hostUrl2, msgList2)
-    print 'form1=', form1
-    print 'form2=', form2
 
     return dict(host1=hostUrl1, form1=form1, msg1=msgList1, host2=hostUrl2, form2=form2, msg2=msgList2)
 
@@ -53,10 +51,17 @@ def _formHandler(formName, form, hostUrl, msgList):
         response.flash = 'form accepted'
     return form
 
+def _getContainerName(client, labelName='registry'):
+    label = { 'label': labelName }
+    resp = client.containers(filters=label)
+    for reg in resp:
+        # Remove the first character '/'
+        return reg['Names'][0][1:]
+    return ''
+
 @auth.requires_login()
 def gc():
     _SLEEP_TIME=0.5
-    _CONTAINER_NAME = 'reg'
     _CONFIG_PATH='/etc/docker/registry'
 
     f = lambda path: docker.tls.TLSConfig(
@@ -68,29 +73,33 @@ def gc():
     up = urlparse(hostUrl)
     url = '{}://{}:2376'.format(up.scheme, up.hostname)
     client = docker.Client(base_url=url, tls=f(_DOCKER_DEFAULT_PATH))
+    containerName = _getContainerName(client)
     msgList = []
+    if not containerName:
+        msgList.append('[Err] Registry not found!')
+        return dict(host=hostUrl, msgs=ms)
 
     # Set read-only flag before GC
-    idDict = client.exec_create(_CONTAINER_NAME, cp('rcfg.yml', 'config.yml'))
+    idDict = client.exec_create(containerName, cp('rcfg.yml', 'config.yml'))
     resp = client.exec_start(idDict)
     msg = '[EXEC][R] {}'.format(resp)
     msgList.append(msg)
-    client.restart(_CONTAINER_NAME)
+    client.restart(containerName)
     time.sleep(_SLEEP_TIME)
 
     # GC
-    idDict = client.exec_create(_CONTAINER_NAME, '/bin/registry garbage-collect {}/config.yml'.format(_CONFIG_PATH))
+    idDict = client.exec_create(containerName, '/bin/registry garbage-collect {}/config.yml'.format(_CONFIG_PATH))
     resp = client.exec_start(idDict)
     msg = '[EXEC][GC] {}'.format(resp)
     msgList.append(msg)
     time.sleep(_SLEEP_TIME)
 
     # Restore read-only flag after GC
-    idDict = client.exec_create(_CONTAINER_NAME, cp('wcfg.yml', 'config.yml'))
+    idDict = client.exec_create(containerName, cp('wcfg.yml', 'config.yml'))
     resp = client.exec_start(idDict)
     msg = '[EXEC][W] {}'.format(resp)
     msgList.append(msg)
-    client.restart(_CONTAINER_NAME)
+    client.restart(containerName)
 
     return dict(host=hostUrl, msgs=msgList)
 
