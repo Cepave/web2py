@@ -182,7 +182,7 @@ def _handleRequest(code, requestMethod, **kwargs):
         if r.status_code == code:
             return r
         print r.status_code, r.text
-    except requests.exceptions.RequestException as e:
+    except Exception as e:
         print '[Request Error]', e
     return None
 
